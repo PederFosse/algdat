@@ -1,4 +1,4 @@
-package F7September;
+package Forelesninger.F7September;
 import static hjelpeklasser.Tabell.*;
 
 public class Binarysearch {

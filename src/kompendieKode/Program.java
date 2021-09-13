@@ -1,15 +1,10 @@
 package kompendieKode;
 
-import hjelpeklasser.Tabell;
+import static hjelpeklasser.Tabell.*;
 
 public class Program {
     public static void main(String[] args) {
-        int[] a = Tabell.randPerm(20);
-
-        for (int k : a) System.out.print(k + " ");
-
-        int m = Tabell.maks(a, 10, 0);
-
-        System.out.println("\nStørste verdi ligger på plass: " + m);
+        int[] a = {3, 5, 4, 7, 6, 8, 1, 2, 9, 10};
+        System.out.println(inversjoner(a));
     } // main
 } // class Program

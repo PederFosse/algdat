@@ -7,7 +7,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Dette er Noe jeg har skrevet selv, dette har vært en del av en oppgavetekst.
+ * Dette er ikke noe jeg har skrevet selv, dette har vært en del av en oppgavetekst.
  */
 public class Oblig1Test {
 

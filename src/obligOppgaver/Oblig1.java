@@ -1,7 +1,5 @@
 package obligOppgaver;
 
-////// Løsningsforslag Oblig 1 ////////////////////////
-
 import java.util.NoSuchElementException;
 
 /**

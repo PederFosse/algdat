@@ -3,9 +3,6 @@ package Forelesninger;
 import java.util.Arrays;
 
 public class F31August {
-    public static void main(String[] args) {
-
-    } // main
 
     // trykk ctrl + shift + T for å generere test
     public static void myFirstSort(int[] values) {

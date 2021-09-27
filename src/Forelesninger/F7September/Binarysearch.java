@@ -1,11 +1,12 @@
 package Forelesninger.F7September;
+import static egenTesting.EgenTesting.print;
 import static hjelpeklasser.Tabell.*;
 
 public class Binarysearch {
 
     public static void main(String[] args) {
         int[] values = {3, 5, 10, 11, 19, 20, 21, 33};
-        skrivln(values);
+        print(values);
         int target = 10;
         // int index = binarySearchRecursive(values, target, 0, values.length - 1);
         int index = binarySearch(values, target);

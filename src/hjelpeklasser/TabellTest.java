@@ -30,9 +30,9 @@ class TabellTest {
 
     @Test
     void maks() {
-        int[] values = {3, 6, 1, 5, 4};
-        int maks = Tabell.maks(values);
-        int truth = 1;
+        Integer[] values = {3, 6, 1, 5, 4};
+        Integer maks = Tabell.maks(values);
+        Integer truth = 1;
 
         assertEquals(truth, maks);
     }

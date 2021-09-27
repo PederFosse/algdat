@@ -1,5 +1,6 @@
 package Forelesninger.F7September;
 
+import static egenTesting.EgenTesting.print;
 import static hjelpeklasser.Tabell.*;
 
 public class BubbleSort {
@@ -8,7 +9,7 @@ public class BubbleSort {
 
         bubblesort(values);
 
-        skrivln(values);
+        print(values);
     } // main
 
     public static void bubblesort(int[] values) {

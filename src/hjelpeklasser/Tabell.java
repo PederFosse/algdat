@@ -1,18 +1,19 @@
 package hjelpeklasser;
 
+import eksempelklasser.Komparator;
+import eksempelklasser.Person;
+import eksempelklasser.Student;
+import eksempelklasser.Studium;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
+import static egenTesting.EgenTesting.print;
+
 public class Tabell {
     private Tabell() {} // privat standardkonstruktør - hindrer instansiering
-
-    public static void main(String[] args) {
-        int[] values = {4, 2, 3, 6, 19};
-        skriv(values, 0, values.length);
-
-    }
 
     public static void bytt(int[] a, int i, int j) { //programkode 1.1.8 d)
         int temp = a[i]; a[i] = a[j];a[j] = temp;
@@ -22,6 +23,25 @@ public class Tabell {
         char temp = c[i];
         c[i] = c[j];
         c[j] = temp;
+    }
+
+    public static void bytt(Object[] a, int i, int j) {
+        Object temp = a[i];
+        a[i] = a[j];
+        a[j] = temp;
+    }
+
+    public static Integer[] randPermInteger(int n) {
+        Integer[] a = new Integer[n];   // Integer tabell
+        Arrays.setAll(a, i->i+1);   // tall fra 1 til n
+
+        Random r = new Random();    // hentes fra java.util
+
+        for (int k = n-1; k > 0; k--) {
+            int i = r.nextInt(k+1); // tilfeldig tall fra [0,k]
+            bytt(a, k, i);  // bytter om
+        }
+        return a;   // tabellen med permutasjonen returneres
     }
 
     public static int[] randPerm(int n) { // programkode 1.1.8 f som gir en helt tilfeldig heltallsliste uten tilbakelegging med n elementer
@@ -44,14 +64,14 @@ public class Tabell {
         return m;
     }
 
-    public static int maks(int[] a, int fra, int til) { // programkode 1.2.1 c)
+    public static <T extends Comparable<? super T>> int maks(T[] a, int fra, int til) { // programkode 1.2.1 c)
         fraTilKontroll(a.length, fra, til);
 
         int m = fra;                // indeks til største verdi i a[fra:til>
-        int maksverdi = a[fra];     // største verdi i a[fra:til>
+        T maksverdi = a[fra];     // største verdi i a[fra:til>
 
         for (int i = fra + 1; i < til; i++) {
-            if (a[i] > maksverdi) {
+            if (a[i].compareTo(maksverdi) > 0) {
                 m = i;              // indeks til største verdi oppdateres
                 maksverdi = a[m];   // største verdi oppdateres
             }
@@ -60,8 +80,22 @@ public class Tabell {
         return m;
     }
 
-    public static int maks(int[] a) {
-        return maks(a, 0, a.length);
+    public static <T extends Comparable<? super T>> int maks(T[] a) {
+        return maks(a, 0, a.length);   // returnerer posisjon til største verdi
+    }
+
+    public static <T> int maks(T[] a, Komparator<? super T> c) {
+        T maksverdi = a[0];
+        int indeks = 0;
+
+        for (int i = 1; i < a.length; i++) {
+            if (c.compare(a[i], a[i-1]) > 0) {
+                maksverdi = a[i];
+                indeks = i;
+            }
+        }
+
+        return indeks;
     }
 
     public static int min(int[] a, int fra, int til) { // oppgave S121o1
@@ -186,6 +220,23 @@ public class Tabell {
 
     } // nestMaks
 
+    public static void skriv(Object[] a, int fra, int til) {
+        fraTilKontroll(a.length, fra, til);
+
+        String s = "[";
+
+        for (int i = fra; i < til; i++) {
+            s += a[i] + ", ";
+        }
+
+        s = s.replaceAll(", $", "]");
+
+        System.out.println(s);
+    }
+
+    public static void skriv(Object[] a) {
+        skriv(a, 0, a.length);
+    }
 
     /**
      * Metode som skriver ut et array(integer) [fra:til> med mellomrom mellom elementer,
@@ -195,30 +246,31 @@ public class Tabell {
      * @param til   integer for index på hvor utskrift skal slutte, utskrift skriver ut elementet til venstre for til,
      *              men ikke elementet på plass "til"
      */
-    public static void skriv(int[] a, int fra, int til) {
-        fraTilKontroll(a.length, fra, til); // error handling
+//    public static void skriv(int[] a, int fra, int til) {
+//        fraTilKontroll(a.length, fra, til); // error handling
+//
+//        String s = "";
+//        for (int i = fra; i < til; i++) {
+//            s += a[i] + " ";
+//        }
+//        s = s.strip(); // remove trailing space from string
+//        System.out.print(s);
+//    }
+//
+//    public static void skriv(int[] a) {
+//        skriv(a, 0, a.length);
+//    }
+//
+//    public static void skrivln(int[] a, int fra, int til) {
+//        skriv(a, fra, til);
+//        System.out.println();
+//    }
+//
+//    public static void skrivln(int[] a) {
+//        skriv(a);
+//        System.out.println();
+//    }
 
-        String s = "";
-        for (int i = fra; i < til; i++) {
-            s += a[i] + " ";
-        }
-        s = s.strip(); // remove trailing space from string
-        System.out.print(s);
-    }
-
-    public static void skriv(int[] a) {
-        skriv(a, 0, a.length);
-    }
-
-    public static void skrivln(int[] a, int fra, int til) {
-        skriv(a, fra, til);
-        System.out.println();
-    }
-
-    public static void skrivln(int[] a) {
-        skriv(a);
-        System.out.println();
-    }
 
     public static void sjekkTomArray(int[] a) {
         int n = a.length;
@@ -312,5 +364,132 @@ public class Tabell {
         }
 
         return antall;  // returnerer antall
+    }
+
+    public static void bobleSorteing(int[] a) {
+        for (int n = a.length; n > 1; n--) {    // n er intervallgrense
+            int byttIndeks = 0;                 // hjelpevariabel
+            for (int i = 1; i < n; i++) {       // går fra 1 til n
+                if (a[i - 1] > a[i]) {          // sammenlikner
+                    bytt(a, i-1, i); // bytter
+                    byttIndeks = n;     // høyre indeks i ombyttingen
+                }
+            }
+            n = byttIndeks; // ny intervallgrense
+        }
+    }
+
+    public static void utvalgssortering(int[] a) {  // programkode 1.3.4 a)
+        for (int i = 0; i < a.length - 1; i++) {
+            bytt(a, i, min(a, i, a.length));
+        }
+    }
+
+    public static int usorertSøk(int[] a, int target) {
+        for (int i = 0; i < a.length; i++) {
+            if (target == a[i]) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static int linearSearch(int[] a, int target) {
+        if (a.length == 0 || target > a[a.length - 1]) {
+            return -(a.length + 1); // verdi er større enn den største
+        }
+
+        int i = 0;
+
+        for ( ; a[i] < target; i++);    // siste verdi er vaktpost
+
+        return target == a[i] ? i : -(i + 1);   // sjekker innholdet i a[i]
+    }
+
+    /**
+     * Viktig programmeringsregel: Hvis man i en valgsituasjon har mer enn to utfall,
+     * skal man alltid teste i rekkefølge etter synkende sannsynlighet.
+     * Dvs. først teste på det som har størst sannsynlighet for å inntreffe,
+     * dernest det som har nest størst sannsynlighet, osv.
+     * @param a
+     * @param fra
+     * @param til
+     * @param verdi
+     * @return
+     */
+    public static int binarySearch(int[] a, int fra, int til, int verdi) { // programkode 1.3.6 c)
+        fraTilKontroll(a.length, fra, til);
+        int v = fra, h = til - 1;   // v og h er intervallets endepunkter
+        while(v < h) {
+            int m = (v + h) / 2;
+
+            if (verdi > a[m]) {
+                 v = m + 1;
+            } else {
+                h = m;
+            }
+        }
+        if (h < v || verdi < a[v]) {
+            return -(v + 1);
+        } else if (verdi == a[v]) {
+            return v;
+        } else {
+            return -(v + 2);
+        }
+    }
+
+    public static int binarySearch(int[] a, int verdi) {
+        return binarySearch(a, 0, a.length, verdi);
+    }
+
+    public static <T extends Comparable<? super T>> void insertionSort(T[] a) {
+        for (int i = 1; i < a.length; i++) {    // starter med i = 1
+            T verdi = a[i];     // verdi er et tabellelement
+            int j = i - 1;      // j er en indeks
+            for (; j >= 0 && verdi.compareTo(a[j]) < 0; j--) {   // sammenligner og flytter
+                a[j+1] = a[j];
+            }
+            a[j + 1] = verdi;
+        }
+    }
+
+    public static <T> void insertionSort(T[] a, Komparator<? super T> c) {
+        for (int i = 1; i < a.length; i++) {
+            T verdi = a[i];     // verdi er et tabellelement
+            int j = i - 1;      // j er en indeks
+
+            // sammenligner og forskyver
+            for ( ; j >= 0 && c.compare(verdi, a[j]) < 0; j--) {
+                a[j+1] = a[j];
+            }
+
+            a[j+1] = verdi;     // j + 1 er rett sortert plass
+        }
+    }
+
+    public static void shell(int[] a, int k) {  // programkode 1.3.8 f)
+        for (int i = k; i < a.length; i++) {
+            int temp = a[i], j = i - k;
+            for ( ; j >= 0 && temp < a[j]; j -= k) {
+                a[j+k] = a[j];
+            }
+            a[j+k] = temp;
+        }
+    }
+
+    public static void main(String[] args) {
+        Person[] p = new Person[5]; // en persontabell
+        p[0] = new Person("Kari", "Svendsen");      // Kari Svendsen
+        p[1] = new Person("Boris", "Zukanovic");    // Boris Zukanovic
+        p[2] = new Person("Ali", "Kahn");           // Ali Kahn
+        p[3] = new Person("Azra", "Zukanovic");     // Azra Zukanovic
+        p[4] = new Person("Kari", "Pettersen");     // Kari Pettersen
+
+        insertionSort(p, Komparator.orden(Person::etternavn));
+        System.out.println(Arrays.toString(p));
+
+        String[] s = {"Lars","Anders","Bodil","Kari","Per","Berit"};
+        insertionSort(s, (x, y) -> y.length() - x.length());
+        System.out.println(Arrays.toString(s));
     }
 } // class Tabell

@@ -489,7 +489,7 @@ public class Tabell {
         System.out.println(Arrays.toString(p));
 
         String[] s = {"Lars","Anders","Bodil","Kari","Per","Berit"};
-        insertionSort(s, (x, y) -> y.length() - x.length());
+        insertionSort(s, Komparator.orden(String::length).deretter(Komparator.naturligOrden()));
         System.out.println(Arrays.toString(s));
     }
 } // class Tabell

@@ -606,6 +606,38 @@ public class Tabell {
         flettesortering(a, b, 0, a.length);
     }
 
+    private static <T> void flett(T[] a, T[] b, int fra, int m, int til, Comparator<? super T> c) {
+        int n = m - fra;                            // antall elementer i a[fra:m>
+        System.arraycopy(a, fra, b, 0, n);  // kopierer a[fra:m> over i b[0:n>
+
+        int i = 0, j = m, k = fra;                  // løkkevariabler og indekser
+
+        while(i < n && j < til) {                   // fletter b[0:n> og a[m:til> og legger resultatet i a[fra:til>
+            a[k++] = c.compare(b[i], a[j]) <= 0 ? b[i++] : a[j++];
+        }
+
+        while (i < n) {     // tar med resten av b[b:n>
+            a[k++] = b[i++];
+        }
+    }
+
+    private static <T> void flettesortering(T[] a, T[] b, int fra, int til, Comparator<? super T> c) {
+        if (til - fra <= 1) return; // a [fra:til> har maks ett element
+        int m = (fra + til) / 2;    // midt mellom fra og til
+
+        flettesortering(a, b, fra, m, c);
+        flettesortering(a, b, m, til, c);
+
+        if (c.compare(a[m-1], a[m]) > 0) {
+            flett(a, b, fra, m, til, c);
+        }
+    }
+
+    public static <T> void flettesortering(T[] a, Comparator<? super T> c) {
+        T[] b = Arrays.copyOf(a, a.length / 2); // hjelpetabell for flettingen
+        flettesortering(a, b, 0, a.length, c);
+    }
+
     public static void main(String[] args) {
         Comparator<Point> c = Comparator.comparingInt((Point p) -> p.x).thenComparingInt(p -> p.y);
 
@@ -624,7 +656,8 @@ public class Tabell {
 
         //innsettingssortering(punkt, c);
         //utvalgssortering(punkt, c);
-        kvikksortering(punkt, c);
+        //kvikksortering(punkt, c);
+        flettesortering(punkt, c);
 
         for (Point p : punkt) {
             System.out.print("(" + p.x + "," + p.y + ")");

@@ -497,7 +497,45 @@ public class Tabell {
             a[j+k] = temp;
         }
     }
-/*
+
+    private static <T> int parter0(T[] a, int v, int h, T skilleverdi, Comparator<? super T> c) {
+        while(true) {
+            while (v <= h && c.compare(a[v], skilleverdi) < 0) v++;     // h er stoppeverdi for v
+            while (v <= h && c.compare(a[h], skilleverdi) >= 0) h--;    // v er stoppeverdi for h
+
+            if (v < h) {
+                bytt(a, v++, h++);  // bytter om a[v] og a[h]
+            } else {
+                return v;           // a[v] er nådd den første som ikke er mindre enn skilleverdi
+            }
+        }
+    }
+
+    private static <T> int sParter0(T[] a, int v, int h, int indeks, Comparator<? super T> c) {
+        bytt(a, indeks, h); // skilleverdi a[indeks] legges bakerst i tabellen
+        int pos = parter0(a, v, h-1, a[h], c);  // partisjonerer a[v:h-1]
+        bytt(a, pos, h);    // bytter for å få skilleverdien på rett plass
+        return pos;         // returnerer posisjonen til skilleverdien
+    }
+
+    private static <T> void kvikksortering0(T[] a, int v, int h, Comparator<? super T> c) {
+        if (v >= h) return; // a[v:h] er tomt eller har maks ett element
+
+        int k = sParter0(a, v, h, (v+h)/2, c);  // bruker midtverdi som skilleverdi
+        kvikksortering0(a, v, k-1, c);  // sorterer intervallet a[v:k-1]
+        kvikksortering0(a, k+1, h, c);  // sorterer intervallet a[k+1:h]
+    }
+
+    public static <T> void kvikksortering(T[] a, int fra, int til, Comparator<? super T> c) {
+        fraTilKontroll(a.length, fra, til); // brukes når metoden er public
+        kvikksortering0(a, fra, til - 1, c);    // v = fra, h = til - 1
+    }
+
+    // sorterer hele tabellen
+    public static <T> void kvikksortering(T[] a, Comparator<? super T> c) {
+        kvikksortering0(a, 0, a.length - 1, c);
+    }
+
     private static int parter0(int[] a, int v, int h, int skilleverdi) {
         while(true) {
             while (v <= h && a[v] < skilleverdi) {  // h er stoppeverdi for v
@@ -535,7 +573,7 @@ public class Tabell {
     public static void kvikksortering(int[] a) {
         kvikksortering0(a, 0, a.length - 1);
     }
-*/
+
     public static void main(String[] args) {
         Comparator<Point> c = Comparator.comparingInt((Point p) -> p.x).thenComparingInt(p -> p.y);
 
@@ -553,7 +591,8 @@ public class Tabell {
         System.out.println();
 
         //innsettingssortering(punkt, c);
-        utvalgssortering(punkt, c);
+        //utvalgssortering(punkt, c);
+        kvikksortering(punkt, c);
 
         for (Point p : punkt) {
             System.out.print("(" + p.x + "," + p.y + ")");

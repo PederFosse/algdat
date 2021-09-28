@@ -8,7 +8,7 @@ public enum Studium {
 
     private final String fulltnavn;
 
-    private Studium(String fulltnavn) {
+    Studium(String fulltnavn) {
         this.fulltnavn = fulltnavn;
     }
 

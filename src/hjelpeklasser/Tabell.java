@@ -5,8 +5,10 @@ import eksempelklasser.Person;
 import eksempelklasser.Student;
 import eksempelklasser.Studium;
 
+import java.awt.*;
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
@@ -238,39 +240,6 @@ public class Tabell {
         skriv(a, 0, a.length);
     }
 
-    /**
-     * Metode som skriver ut et array(integer) [fra:til> med mellomrom mellom elementer,
-     * uten mellomrom eller linjeskift på slutten
-     * @param a     et array (integer)
-     * @param fra   integer for index på hvor utskriften skal starte
-     * @param til   integer for index på hvor utskrift skal slutte, utskrift skriver ut elementet til venstre for til,
-     *              men ikke elementet på plass "til"
-     */
-//    public static void skriv(int[] a, int fra, int til) {
-//        fraTilKontroll(a.length, fra, til); // error handling
-//
-//        String s = "";
-//        for (int i = fra; i < til; i++) {
-//            s += a[i] + " ";
-//        }
-//        s = s.strip(); // remove trailing space from string
-//        System.out.print(s);
-//    }
-//
-//    public static void skriv(int[] a) {
-//        skriv(a, 0, a.length);
-//    }
-//
-//    public static void skrivln(int[] a, int fra, int til) {
-//        skriv(a, fra, til);
-//        System.out.println();
-//    }
-//
-//    public static void skrivln(int[] a) {
-//        skriv(a);
-//        System.out.println();
-//    }
-
 
     public static void sjekkTomArray(int[] a) {
         int n = a.length;
@@ -366,7 +335,7 @@ public class Tabell {
         return antall;  // returnerer antall
     }
 
-    public static void bobleSorteing(int[] a) {
+    public static void bobleSortering(int[] a) {
         for (int n = a.length; n > 1; n--) {    // n er intervallgrense
             int byttIndeks = 0;                 // hjelpevariabel
             for (int i = 1; i < n; i++) {       // går fra 1 til n
@@ -379,13 +348,43 @@ public class Tabell {
         }
     }
 
+    public static <T> void bobleSortering(T[] a, Comparator<? super T> c) {
+        for (int n = a.length; n > 1; n--) {        // n er intervallgrense
+            int byttIndeks = 0;
+            for (int i = 1; i < n; i++) {           // går fra 1 til n
+                if (c.compare(a[i-1], a[i]) > 0) {  // sammenligner
+                    bytt(a, i-1, i);    // bytter
+                    byttIndeks = n;                 // høyre indeks i ombyttingen
+                }
+            }
+            n = byttIndeks;
+        }
+    }
+
     public static void utvalgssortering(int[] a) {  // programkode 1.3.4 a)
         for (int i = 0; i < a.length - 1; i++) {
             bytt(a, i, min(a, i, a.length));
         }
     }
 
-    public static int usorertSøk(int[] a, int target) {
+    public static <T> void utvalgssortering(T[] a, Comparator<? super T> c) {
+        for (int i = 0; i < a.length - 1; i++) {
+            // finne minste verdi i listen
+            int m = i;          // indeks til minste verdi i a[i:a.length>
+            T minverdi = a[i];  // minste verdi i a[i:a.length>
+
+            for (int j = i + 1; j < a.length; j++) {
+                if (c.compare(a[j], minverdi) < 0) {
+                    m = j;              // indeks til minste verdi oppdateres
+                    minverdi = a[j];    // minste verdi oppdateres
+                }
+            }
+
+            bytt(a, i, m);  // minste verdi i listen fra indeks i til slutten av listen blir lagt i indeks i.
+        }
+    }
+
+    public static int usortertSøk(int[] a, int target) {
         for (int i = 0; i < a.length; i++) {
             if (target == a[i]) {
                 return i;
@@ -442,7 +441,29 @@ public class Tabell {
         return binarySearch(a, 0, a.length, verdi);
     }
 
-    public static <T extends Comparable<? super T>> void insertionSort(T[] a) {
+    public static <T> int binarySearch(T[] a, int fra, int til, T verdi, Comparator<? super T> c) {
+        fraTilKontroll(a.length, fra, til);
+
+        int v = fra, h = til - 1;   // v og h er intervallets endepunktker
+        while(v < h) {
+            int m = (v + h) / 2;
+
+            if (c.compare(verdi, a[m]) > 0) {
+                v = m+1;
+            } else {
+                h = m;
+            }
+        }
+        if (h < v || c.compare(verdi, a[v]) < 0) {
+            return -(v + 1);
+        } else if (c.compare(verdi, a[v]) == 0) {   // funnet
+            return v;
+        } else {
+            return -(v + 2);
+        }
+    }
+
+    public static <T extends Comparable<? super T>> void innsettingssortering(T[] a) {
         for (int i = 1; i < a.length; i++) {    // starter med i = 1
             T verdi = a[i];     // verdi er et tabellelement
             int j = i - 1;      // j er en indeks
@@ -453,7 +474,7 @@ public class Tabell {
         }
     }
 
-    public static <T> void insertionSort(T[] a, Komparator<? super T> c) {
+    public static <T> void innsettingssortering(T[] a, Comparator<? super T> c) {
         for (int i = 1; i < a.length; i++) {
             T verdi = a[i];     // verdi er et tabellelement
             int j = i - 1;      // j er en indeks
@@ -476,20 +497,66 @@ public class Tabell {
             a[j+k] = temp;
         }
     }
+/*
+    private static int parter0(int[] a, int v, int h, int skilleverdi) {
+        while(true) {
+            while (v <= h && a[v] < skilleverdi) {  // h er stoppeverdi for v
+                v++;
+            }
+            while(v <= h && a[h] >= skilleverdi) {  // v er stoppeverdi for h
+                h--;
+            }
 
+            if (v < h) bytt(a, v++, h--);   // bytter som a[v] og a[h]
+            else return v;  // a[v] er nådd den første som ikke er mindre enn skilleverdi
+        }
+    }
+
+    private static int sParter0(int[] a, int v, int h, int indeks) {
+        bytt(a, indeks, h); // skilleverdi a[indeks] flyttes bakerst
+        int pos = parter0(a, v, h-1, a[h]); // partisjonerer a[v:h-1]
+        bytt(a, pos, h);    // bytter for å få skilleverdien på rett plass
+        return pos;         // returnerer posisjonen til skilleverdien
+    }
+
+    private static void kvikksortering0(int[] a, int v, int h) {
+        if (v >= h) return; // a[v:h] er tomt eller har maks ett element
+
+        int k = sParter0(a, v, h, (v+h)/2); // bruker midtverdi som skilleverdi
+        kvikksortering0(a, v, k-1); // sorterer intervallet a[v:k-1]
+        kvikksortering0(a, k+1, h); // sorterer intervallet a[k+1:h]
+    }
+
+    public static void kvikksortering(int[] a, int fra, int til) {
+        fraTilKontroll(a.length, fra, til); // sjekker når metoden er offentlig
+        kvikksortering0(a, fra, til - 1);   // v = fra, h = til - 1
+    }
+
+    public static void kvikksortering(int[] a) {
+        kvikksortering0(a, 0, a.length - 1);
+    }
+*/
     public static void main(String[] args) {
-        Person[] p = new Person[5]; // en persontabell
-        p[0] = new Person("Kari", "Svendsen");      // Kari Svendsen
-        p[1] = new Person("Boris", "Zukanovic");    // Boris Zukanovic
-        p[2] = new Person("Ali", "Kahn");           // Ali Kahn
-        p[3] = new Person("Azra", "Zukanovic");     // Azra Zukanovic
-        p[4] = new Person("Kari", "Pettersen");     // Kari Pettersen
+        Comparator<Point> c = Comparator.comparingInt((Point p) -> p.x).thenComparingInt(p -> p.y);
 
-        insertionSort(p, Komparator.orden(Person::etternavn));
-        System.out.println(Arrays.toString(p));
+        int[] x = {3,5,6,2,6,1,4,7,7,4};         // x-koordinater
+        int[] y = {3,6,3,5,5,2,1,4,2,4};         // y-koordinater
 
-        String[] s = {"Lars","Anders","Bodil","Kari","Per","Berit"};
-        insertionSort(s, Komparator.orden(String::length).deretter(Komparator.naturligOrden()));
-        System.out.println(Arrays.toString(s));
+        Point[] punkt = new Point[x.length];
+        for (int i = 0; i < punkt.length; i++) {
+            punkt[i] = new Point(x[i], y[i]);
+        }
+
+        for (Point p : punkt) {
+            System.out.print("(" + p.x + "," + p.y + ")");
+        }
+        System.out.println();
+
+        //innsettingssortering(punkt, c);
+        utvalgssortering(punkt, c);
+
+        for (Point p : punkt) {
+            System.out.print("(" + p.x + "," + p.y + ")");
+        }
     }
 } // class Tabell

@@ -2,6 +2,8 @@ package eksempelklasser;
 
 import hjelpeklasser.Tabell;
 
+import java.util.Comparator;
+
 public class Student extends Person {
     private final Studium studium;  // studentens studium
 
@@ -27,11 +29,11 @@ public class Student extends Person {
         s[3] = new Student("Fredrik", "Husevaag", Studium.IT);
         s[4] = new Student("Rikard", "Dotzler", Studium.Data);
 
-        Komparator<Student> c = Komparator.orden(Student::studium).
-                deretter(Student::etternavn).
-                deretter(Student::fornavn);
+        Comparator<Student> c = Comparator.comparing(Student::studium).
+                thenComparing(Student::etternavn).
+                thenComparing(Student::fornavn);
 
-        Tabell.insertionSort(s, c);
+        Tabell.innsettingssortering(s, c);
 
         for (Student t : s) {
             System.out.println(t);

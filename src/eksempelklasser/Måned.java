@@ -9,7 +9,7 @@ public enum Måned {
     APR ("April", 4),
     MAI ("Mai", 5),
     JUN ("Juni", 6),
-    JUL ("Julie", 7),
+    JUL ("Juli", 7),
     AUG ("August", 8),
     SEP ("September", 9),
     OKT ("Oktober", 10),
@@ -19,7 +19,7 @@ public enum Måned {
     private final String fulltnavn;
     private final int mndnr;
 
-    private Måned (String fulltnavn, int mndnr) {
+    Måned (String fulltnavn, int mndnr) {
         this.fulltnavn = fulltnavn;
         this.mndnr = mndnr;
     }

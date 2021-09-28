@@ -1,5 +1,8 @@
 package eksempelklasser;
 
+/**
+ * Brukt i kompendiet og laget for å få en forståelse av java sin Comparator
+ */
 @FunctionalInterface
 public interface Komparator<T> {    // et funksjonsgrensesnitt
     int compare(T x, T y);  // en abstrakt metode

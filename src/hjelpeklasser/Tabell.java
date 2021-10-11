@@ -565,9 +565,25 @@ public class Tabell {
         kvikksortering0(a, k+1, h); // sorterer intervallet a[k+1:h]
     }
 
+    private static void kvikksortering1(int[] a, int v, int h)
+    {
+        System.out.println("a[" + v + ":" + h + "] legges på stakken");
+
+        int p = Tabell.sParter0(a, v, h, (v + h) / 2);  // bruker midtverdien
+        if (v < p - 1) kvikksortering1(a, v, p - 1);    // sorterer intervallet a[v : p - 1]
+        if (p + 1 < h) kvikksortering1(a, p + 1, h);    // sorterer intervallet a[p + 1 : h]
+    }
+
+    public static void main(String[] args) {
+        int[] values = randPerm(10);
+        kvikksortering(values, 0, values.length);
+    }
+
     public static void kvikksortering(int[] a, int fra, int til) {
         fraTilKontroll(a.length, fra, til); // sjekker når metoden er offentlig
-        kvikksortering0(a, fra, til - 1);   // v = fra, h = til - 1
+        if (a.length > 1) {
+            kvikksortering1(a, fra, til - 1);   // v = fra, h = til - 1
+        }
     }
 
     public static void kvikksortering(int[] a) {
@@ -638,29 +654,30 @@ public class Tabell {
         flettesortering(a, b, 0, a.length, c);
     }
 
-    public static void main(String[] args) {
-        Comparator<Point> c = Comparator.comparingInt((Point p) -> p.x).thenComparingInt(p -> p.y);
-
-        int[] x = {3,5,6,2,6,1,4,7,7,4};         // x-koordinater
-        int[] y = {3,6,3,5,5,2,1,4,2,4};         // y-koordinater
-
-        Point[] punkt = new Point[x.length];
-        for (int i = 0; i < punkt.length; i++) {
-            punkt[i] = new Point(x[i], y[i]);
-        }
-
-        for (Point p : punkt) {
-            System.out.print("(" + p.x + "," + p.y + ")");
-        }
-        System.out.println();
-
-        //innsettingssortering(punkt, c);
-        //utvalgssortering(punkt, c);
-        //kvikksortering(punkt, c);
-        flettesortering(punkt, c);
-
-        for (Point p : punkt) {
-            System.out.print("(" + p.x + "," + p.y + ")");
-        }
-    }
+    // main metode for å teste Comparator med ulike sorteringsalgoritmer
+//    public static void main(String[] args) {
+//        Comparator<Point> c = Comparator.comparingInt((Point p) -> p.x).thenComparingInt(p -> p.y);
+//
+//        int[] x = {3,5,6,2,6,1,4,7,7,4};         // x-koordinater
+//        int[] y = {3,6,3,5,5,2,1,4,2,4};         // y-koordinater
+//
+//        Point[] punkt = new Point[x.length];
+//        for (int i = 0; i < punkt.length; i++) {
+//            punkt[i] = new Point(x[i], y[i]);
+//        }
+//
+//        for (Point p : punkt) {
+//            System.out.print("(" + p.x + "," + p.y + ")");
+//        }
+//        System.out.println();
+//
+//        //innsettingssortering(punkt, c);
+//        //utvalgssortering(punkt, c);
+//        //kvikksortering(punkt, c);
+//        flettesortering(punkt, c);
+//
+//        for (Point p : punkt) {
+//            System.out.print("(" + p.x + "," + p.y + ")");
+//        }
+//    }
 } // class Tabell

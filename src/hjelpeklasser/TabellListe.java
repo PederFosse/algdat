@@ -1,11 +1,13 @@
 package hjelpeklasser;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class TabellListe<T> implements Liste<T> {
     private T[] a;
     private int antall;
+    private int endringer;
 
     public TabellListe(T[] b) {
         this(b.length); // den andre konstruktøren
@@ -44,18 +46,24 @@ public class TabellListe<T> implements Liste<T> {
             }
         }
 
+        endringer++;
         antall = 0;
     }
 
     private class TabellListeIterator implements Iterator<T> {
         private int denne = 0;  // instansvariabel
         private boolean fjernOK = false;
+        private int iteratorendringer = endringer;
 
         public boolean hasNext() {  // sjekker om det er fler igjen
             return denne < antall;
         }
 
         public T next() {
+            if (iteratorendringer != endringer) {
+                throw new ConcurrentModificationException("Listen er endret!");
+            }
+
             if (!hasNext()) {
                 throw new NoSuchElementException("Tomt eller ingen verdier igjen");
             }
@@ -63,7 +71,11 @@ public class TabellListe<T> implements Liste<T> {
             return a[denne++];  // a[denne] returneres før denne++
         }
 
-        public void remove() {  // ny versjon
+        public void remove() {
+            if (iteratorendringer != endringer) {
+                throw new ConcurrentModificationException("Listen er endret!");
+            }
+
             if (!fjernOK) {
                 throw new IllegalStateException("Ulovlig tilstand");
             }
@@ -77,6 +89,15 @@ public class TabellListe<T> implements Liste<T> {
 
             System.arraycopy(a, denne + 1, a, denne, antall - denne);   // tetter igjen
             a[antall] = null;   // verdien som lå lengst til høyre nulles
+
+            endringer++;
+            iteratorendringer++;
+        }
+
+        public void forEachRemaining(Consumer<? super T> action) {
+            while(denne < antall) {
+                action.accept(a[denne++]);  // a[denne] før denne++
+            }
         }
     } // TabellListeIterator
 
@@ -114,6 +135,7 @@ public class TabellListe<T> implements Liste<T> {
 
         T gammelverdi = a[indeks];  // tar vare på den gamle verdien
         a[indeks] = verdi;          // legger inn ny verdi
+        endringer++;
         return gammelverdi;         // returnerer gammel verdi
     }
 
@@ -132,7 +154,7 @@ public class TabellListe<T> implements Liste<T> {
         antall--;   // sletter ved å flytte verdier mot venstre
         System.arraycopy(a, indeks + 1, a, indeks, antall - indeks);
         a[antall] = null;  // tilrettelegger for "søppeltømming"
-
+        endringer++;
         return verdi;
     }
 
@@ -144,6 +166,7 @@ public class TabellListe<T> implements Liste<T> {
         }
 
         a[antall++] = verdi;    // setter inn ny verdi
+        endringer++;
         return true;            // vellykket innlegging
     }
 
@@ -160,6 +183,7 @@ public class TabellListe<T> implements Liste<T> {
 
         a[indeks] = verdi;  // setter inn ny verdi
         antall++;           // vellykket innlegging
+        endringer++;
     }
 
     public boolean inneholder(T verdi) {
@@ -183,30 +207,32 @@ public class TabellListe<T> implements Liste<T> {
         boolean fjernet = nyttAntall < antall;
 
         antall = nyttAntall;
+        endringer++;
         return fjernet;
     }
 
-    public static void main(String... args) // neste oppgave er oppgave 3.2.3.4
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        for (int i = 0; i < antall; i++) {
+            action.accept(a[i]);
+        }
+    }
+
+    public static void main(String... args)
     {
-        String[] s = {"Jens","Per","Kari","Ole","Berit","Jens","Anne","Nils","Siv"};
+        String[] s = {"Per","Kari","Ole"};
 
         Liste<String> liste = new TabellListe<>();
 
+        for (String navn : s) liste.leggInn(navn);
 
-        for (String navn : s) liste.leggInn(0,navn);  // legger inn først
+        System.out.println(liste);
 
-        System.out.println("Vi henter " + liste.hent(5) + ".");
+        Iterator<String> i = liste.iterator();     // oppretter en iterator i
+        Iterator<String> j = liste.iterator();     // oppretter en iterator j
 
-        System.out.println("Nils er på plass " + liste.indeksTil("Nils") + "!");
-
-        liste.oppdater(2,"Anna");  // bytter ut Anne med Anna på plass 2
-
-        System.out.println(liste.fjern(0) + " er slettet!");
-
-        System.out.println("Listeinnhold: " + liste);
-
-        liste.fjernHvis(x -> x.equals("Jens"));  // fjerner alle forekomster av Jens
-
-        liste.forEach(x -> System.out.print(x + " "));
+        System.out.println(i.next());              // den første i listen
+        i.remove();                                // fjerner den første
+        System.out.println(j.next());              // den første i listen
     }
 } // TabellListe

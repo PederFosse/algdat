@@ -93,27 +93,85 @@ public class EnkeltLenketListe<T> implements Liste<T> {
     }
 
     public boolean inneholder(T verdi) {
-        return false;
+        return indeksTil(verdi) != -1;
     }
 
     public T hent(int indeks) {
-        return null;
+        indeksKontroll(indeks, false);
+        return finnNode(indeks).verdi;
     }
 
     public int indeksTil(T verdi) {
-        return 0;
+        if (verdi == null) return -1;
+
+        Node<T> temp = hode;
+
+        for (int i = 0; i < antall; i++) {
+            if (temp.verdi.equals(verdi)) return i; // returnerer indeksen til temp om temp.verdi er lik verdi
+            temp = temp.neste;  // oppdaterer temp
+        }
+        return -1;  // ikke funnet
     }
 
     public T oppdater(int indeks, T verdi) {
-        return null;
+        Objects.requireNonNull(verdi, "Ikke tillatt med null-verdier");
+        indeksKontroll(indeks, false);
+
+        Node<T> p = finnNode(indeks);
+        T gammelVerdi = p.verdi;
+        p.verdi = verdi;
+
+        return gammelVerdi;
     }
 
     public boolean fjern(T verdi) {
-        return false;
+        if (verdi == null) return false;
+
+        Node<T> q = hode, p = null;
+
+        while (q != null) {
+            if (q.verdi.equals(verdi)) break;   // leter etter verdi
+            p = q;  // p er forgjengeren til q
+            q = q.neste;
+        }
+
+        if (q == null) return false;    // verdi finnes ikke
+        else if (q == hode) hode = hode.neste;  // hvis q er først, flyttes hode til sin neste
+        else p.neste = q.neste; // hopper over q
+
+        if (q == hale) hale = p;    // q var siste node i listen
+
+
+        q = null;
+        p = null;
+
+        antall--;
+
+        return true;
     }
 
     public T fjern(int indeks) {
-        return null;
+        indeksKontroll(indeks, false);
+
+        T temp;
+
+        if (indeks == 0) {  // skal første verdi fjernes?
+            temp = hode.verdi;  // ta vare på verdien som skal fjernes
+            hode = hode.neste;  // hode flyttes til neste node
+            if (antall == 1) hale = null;   // kun 1 verdi i listen
+        } else {
+            Node <T> p = finnNode(indeks - 1);  // p er noden foran den som skal fjernes
+            Node<T> q = p.neste;    // q skal fjernes
+            temp = q.verdi;         // tar vare på verdien som skal fjernes
+
+            if (q == hale) {
+                hale = p;   // hvis q er siste node
+            }
+            p.neste = q.neste;  // "hopper over" q
+        }
+
+        antall--;       // reduserer antall
+        return temp;    // returnerer fjernet verdi
     }
 
     public int antall() {
@@ -141,8 +199,11 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         return sj.toString();
     }
 
-    /**
-     * 19 okt 15:54
-     * neste oppgaver er seksjon 3.3.3
-     */
+    private Node<T> finnNode(int indeks) {
+        Node<T> p = hode;
+        for (int i = 0; i < indeks; i++) {
+            p = p.neste;
+        }
+        return p;
+    }
 }

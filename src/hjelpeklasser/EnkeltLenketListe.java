@@ -2,11 +2,17 @@ package hjelpeklasser;
 
 import hjelpeklasser.Liste;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class EnkeltLenketListe<T> implements Liste<T> {
+    private Node<T> hode;   // referanse til den første noden i listen
+    private Node<T> hale;   // referanse til siste node i listen
+    private int antall;     // amtall noder i listen
+    private int endringer;  // endringer i listen
+
+
     /**
      * Hjelpeklasse for EnkeltLenketListe, derfor private
      * Static fordi dens instanser ikke vil være avhengig av å ha kontakt med listeklassens variabler
@@ -24,13 +30,73 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         }
     } // Node
 
-    private Node<T> hode;   // referanse til den første noden i listen
-    private Node<T> hale;   // referanse til siste node i listen
-    private int antall;     // amtall noder i listen
+    private class EnkeltLenketListeIterator implements Iterator<T> {
+        private Node<T> p = hode;           // p starter på den første i listen
+        private boolean fjernOK = false;    // blir sann når next() kalles
+        private int iteratorEndringer = endringer;  // startverdi
+
+        public boolean hasNext() {
+            return p != null;   // p er ute av listen hvis den har blitt null
+        }
+
+        public T next() {
+            if (endringer != iteratorEndringer) {
+                throw new ConcurrentModificationException("Listen er endret");
+            }
+            if (!hasNext()) throw new NoSuchElementException("Ingen verdier");
+
+            fjernOK = true; // må kan remove kalles
+            T denneVerdi = p.verdi; // tar vare på verdien i p
+            p = p.neste;    // flytter å til den neste verdien
+
+            return denneVerdi;      // returnerer verdien
+        }
+
+        public void remove() {
+            if (endringer != iteratorEndringer) {
+                throw new ConcurrentModificationException("Listen er endret");
+            }
+            if (!fjernOK) throw new IllegalStateException("Ulovlig tilstand!");
+
+            fjernOK = false;    // remove() kan ikke kalles på nytt
+            Node<T> q = hode;   // hjelpevariabel
+
+            if (hode.neste == p) {  // skal den første fjernes?
+                hode = hode.neste;  // den første fjernes
+                if (p == null) hale = null; // dette var den eneste noden
+            } else {
+                Node<T> r = hode;   // må finne forgjengeren til p
+
+                while(r.neste.neste != p) {
+                    r = r.neste;    // flytter r
+                }
+
+                q = r.neste;    // det er q som skal fjernes
+                r.neste = p;    // hopper over q
+                if (p == null) hale = r;    // q var den siste
+            }
+
+            q.verdi = null;
+            q.neste = null;
+
+            antall--;   // en node mindre i listen
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            Objects.requireNonNull(action, "null-consumer");
+            while(p != null) {
+                action.accept(p.verdi);
+                p = p.neste;
+            }
+        }
+    }
+
 
     public EnkeltLenketListe() {    // standardkonstruktør
         hode = hale = null;    // hode og hale er null
         antall = 0;     // ingen verdier - listen er tom
+        endringer = 0;  // ingen endringer når vi starter
     }
 
     public EnkeltLenketListe(T[] a) {
@@ -65,6 +131,7 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         }
 
         antall++;       // en mer i listen
+        endringer++;
         return true;    // vellykket innlegging
     }
 
@@ -90,6 +157,7 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         }
 
         antall++;   // listen har fått en ny verdi
+        endringer++;
     }
 
     public boolean inneholder(T verdi) {
@@ -121,6 +189,8 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         T gammelVerdi = p.verdi;
         p.verdi = verdi;
 
+        endringer++;
+
         return gammelVerdi;
     }
 
@@ -142,10 +212,11 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         if (q == hale) hale = p;    // q var siste node i listen
 
 
-        q = null;
-        p = null;
+        q.verdi = null; // nuller verdien til q
+        q.neste = null; // nuller nestepeker
 
         antall--;
+        endringer++;
 
         return true;
     }
@@ -171,6 +242,7 @@ public class EnkeltLenketListe<T> implements Liste<T> {
         }
 
         antall--;       // reduserer antall
+        endringer++;
         return temp;    // returnerer fjernet verdi
     }
 
@@ -185,10 +257,11 @@ public class EnkeltLenketListe<T> implements Liste<T> {
     public void nullstill() {
         hode = hale = null;
         antall = 0;
+        endringer++;
     }
 
     public Iterator<T> iterator() {
-        return null;
+        return new EnkeltLenketListeIterator();
     }
 
     public String toString() {
@@ -205,5 +278,56 @@ public class EnkeltLenketListe<T> implements Liste<T> {
             p = p.neste;
         }
         return p;
+    }
+
+    public boolean fjernHvis(Predicate<? super T> predicate) {
+        Objects.requireNonNull(predicate,"null-predikat!");
+
+        Node<T> p = hode, q = null;
+        int antallFjernet = 0;
+
+        while (p != null) {
+            if (predicate.test(p.verdi)) {
+                antallFjernet++;
+                endringer++;
+
+                if (p == hode) {
+                    if (p == hale) {
+                        hale = null;
+                        hode = hode.neste;
+                    }
+                } else if (p == hale) {
+                    q.neste = null;
+                } else {
+                    q.neste = p.neste;
+                }
+            }
+            q = p;
+            p = p.neste;
+        }
+        antall -= antallFjernet;
+        return antallFjernet > 0;
+    }
+
+    public void forEach(Consumer<? super T> action) {
+        Objects.requireNonNull(action, "null-consumer");
+        Node<T> p = hode;
+        while (p != null) {
+            action.accept(p.verdi);
+            p = p.neste;
+        }
+    }
+
+    public static void main(String[] args) {
+        Liste<Integer> liste = new EnkeltLenketListe<>();
+        for (int i = 1; i <= 10; i++) liste.leggInn(i);
+        System.out.println(liste);
+
+        // fjerner partallene
+        liste.fjernHvis(x -> x % 2 == 0);
+
+        System.out.println(liste);
+        // skriver ut
+        liste.forEach(x -> System.out.print(x + " "));
     }
 }

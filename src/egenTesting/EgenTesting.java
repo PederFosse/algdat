@@ -44,22 +44,23 @@ public class EgenTesting {
 //    }
 
     public static void main(String[] args) {
-        int value = 5;
-        String aString = "hello";
-        char aChar = 'f';
-        double aDouble = 0.2;
-        int[] values = {1, 2, 3, 4, 5};
-        String[] strings = {"hello", "world"};
-        char[] chars = {'a', 'b', 'c'};
-        double[] doubles = {0.2, 0.3, 0.5};
+        int posisjon = 45;                                  // 101101
+        int filter = Integer.highestOneBit(posisjon) >> 0;  // 100000
+        System.out.println(posisjon & filter);  // tror: 32
 
-        print(value);
-        print(aString);
-        print(aChar);
-        print(aDouble);
-        print(values);
-        print(strings);
-        print(chars);
-        print(doubles);
+        filter = Integer.highestOneBit(posisjon) >> 1;  //  10000
+        System.out.println(posisjon & filter);  // tror: 0
+
+        filter = Integer.highestOneBit(posisjon) >> 2;  //   1000
+        System.out.println(posisjon & filter);  // tror: 8
+
+        filter = Integer.highestOneBit(posisjon) >> 3;  //    100
+        System.out.println(posisjon & filter);  // tror: 4
+
+        filter = Integer.highestOneBit(posisjon) >> 4;  //     10
+        System.out.println(posisjon & filter);  // tror: 0
+
+        filter = Integer.highestOneBit(posisjon) >> 5;  //      1
+        System.out.println(posisjon & filter);  // tror: 1
     }
 }

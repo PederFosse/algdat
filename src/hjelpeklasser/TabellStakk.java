@@ -84,10 +84,11 @@ public class TabellStakk<T> implements Stakk<T> {
         }
     }
 
+    @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner("[", ", ", "]");
+        StringJoiner sj = new StringJoiner(", ", "[", "]");
         for (int i = antall-1; i >= 0; i--) {
-            sj.add(a[i] == null ? "null" : a[i].toString());
+            sj.add((a[i] == null) ? "null" : a[i].toString());
         }
         return sj.toString();
     }

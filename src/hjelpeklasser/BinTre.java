@@ -2,6 +2,7 @@ package hjelpeklasser;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
@@ -20,6 +21,10 @@ public class BinTre<T> {
 
         private Node(T verdi) {
             this.verdi = verdi;
+        }
+
+        public String toString() {
+            return verdi.toString();
         }
     } // class Node
 
@@ -172,12 +177,135 @@ public class BinTre<T> {
         postorden(rot, oppgave);
     }
 
+    public void postorden2(Consumer<? super T> oppgave) {
+        if (tom()) return;
+
+        Stakk<Node<T>> stakk = new TabellStakk<>();
+        Node<T> p = rot;
+
+        while(true) {
+            while (p != null) {
+                if (p.høyre != null) stakk.leggInn(p.høyre);
+                stakk.leggInn(p);
+                p = p.venstre;
+            }
+            p = stakk.taUt();
+            if (stakk.tom()) {
+                oppgave.accept(p.verdi);
+                break;
+            }
+            if (p.høyre != null && p.høyre == stakk.kikk()) {   // har høyre barn og høyre barn ligger øverst i stakk
+                Node<T> temp = stakk.taUt();
+                stakk.leggInn(p);
+                p = temp;
+            } else {
+                oppgave.accept(p.verdi);
+                p = null;
+            }
+        }
+    }
+
     public void inorden(Consumer<? super T> oppgave) {
         inorden(rot, oppgave);
     }
 
     public void preorden(Consumer<? super T> oppgave) {
         preorden(rot, oppgave);
+    }
+
+    private static <T> Node<T> random(int n, Random r) {
+        if (n == 0) return null;                      // et tomt tre
+        else if (n == 1) return new Node<>(null);     // tre med kun en node
+
+        int k = r.nextInt(n);    // k velges tilfeldig fra [0,n>
+
+        Node<T> venstre = random(k,r);     // tilfeldig tre med k noder
+        Node<T> høyre = random(n-k-1,r);   // tilfeldig tre med n-k-1 noder
+
+        return new Node<>(null,venstre,høyre);
+    }
+
+    public static <T> BinTre<T> random(int n) {
+        if (n < 0) throw new IllegalArgumentException("Må ha n >= 0!");
+
+        BinTre<T> tre = new BinTre<>();
+        tre.antall = n;
+
+        tre.rot = random(n,new Random());   // kaller den private metoden
+
+        return tre;
+    }
+
+    public void preorden2(Oppgave<? super T> oppgave)   // ny versjon
+    {
+        if (tom()) return;
+
+        Stakk<Node<T>> stakk = new TabellStakk<>();
+        Node<T> p = rot;    // starter i roten
+
+        while (true)
+        {
+            oppgave.utførOppgave(p.verdi);
+
+            if (p.venstre != null)
+            {
+                if (p.høyre != null) stakk.leggInn(p.høyre);
+                p = p.venstre;
+            }
+            else if (p.høyre != null)  // her er p.venstre lik null
+            {
+                p = p.høyre;
+            }
+            else if (!stakk.tom())     // her er p en bladnode
+            {
+                p = stakk.taUt();
+            }
+            else                       // p er en bladnode og stakken er tom
+                break;                   // traverseringen er ferdig
+        }
+    }
+
+    private static <T> void preorden3(Node<T> p, Oppgave<? super T> oppgave) {
+        while(true) {
+            oppgave.utførOppgave(p.verdi);
+            if (p.venstre != null) preorden3(p.venstre, oppgave);
+            if (p.høyre == null) return;
+            p = p.høyre;
+        }
+    }
+
+    private static <T> void inorden3(Node<T> p, Oppgave<? super T> oppgave) {
+        while(true) {
+            if (p.venstre != null) inorden3(p.venstre, oppgave);
+            oppgave.utførOppgave(p.verdi);
+            if (p.høyre == null) return;
+            p = p.høyre;
+        }
+    }
+
+    public void inorden2(Oppgave<? super T> oppgave) {
+        if (tom()) return;
+
+        Stakk<Node<T>> stakk = new TabellStakk<>();
+        Node<T> p = rot;
+
+        for ( ; p.venstre != null; p = p.venstre) {
+            stakk.leggInn(p);
+        }
+
+        while(true) {
+            oppgave.utførOppgave(p.verdi);
+
+            if (p.høyre != null) {  // til venstre i høyre subtre
+                for (p = p.høyre; p.venstre != null; p = p.venstre) {
+                    stakk.leggInn(p);
+                }
+            } else if (!stakk.tom()) {
+                p = stakk.taUt();
+            } else {
+                break;
+            }
+        }
     }
 
     public int[] nivåer() {
@@ -279,21 +407,17 @@ public class BinTre<T> {
         nullstill(rot);
     }
 
-    public static void main(String[] args) {
-        int[] posisjon = {1,2,3,4,5,6,7,10,11,13,14,22,23,28,29};  // posisjoner og
-        String[] verdi = "OGNAFIMBEHLCDJK".split("");              // verdier i nivåorden
-        BinTre<String> tre = new BinTre<>(posisjon, verdi);        // en konstruktør
 
-        StringJoiner s = new StringJoiner(", " ,"[", "]");         // StringJoiner
-        tre.postorden(s::add);                         // tegn = String
 
-        System.out.println(s);
-        // Utskrift: [E, I, G, A, L, O, M, C, B, H, D, K, N, J, F]
+    public static void main(String[] args)
+    {
+        int[] posisjoner = {1, 2, 3, 4, 5, 6, 7};
+        String[] values = "1234567".split("");
 
-        tre.nullstill();
+        BinTre<String> tre = new BinTre<>(posisjoner, values);
 
-        s = new StringJoiner(", " ,"[", "]");
-        tre.postorden(s::add);
-        System.out.println(s);
+        tre.postorden(x -> System.out.print(x + " "));
+        System.out.println();
+        tre.postorden2(x -> System.out.print(x + " "));
     }
 } // class BinTre

@@ -190,8 +190,32 @@ public class BinTre<T> implements Iterable<T> {
         antall++;
     }
 
+    private static int antall(Node<?> p) {
+        if (p == null) return 0;
+        return 1 + antall(p.venstre) + antall(p.høyre);
+    }
+
     public int antall() {
-        return antall;
+        return antall(rot);
+    }
+
+    private static int høyde(Node<?> p) {
+        if (p == null) return -1;
+
+        return 1 + Math.max(høyde(p.venstre), høyde(p.høyre));
+    }
+
+    public int høyde() {
+        return høyde(rot);
+    }
+
+    private static <T> boolean inneholder(Node<T> p, T verdi) {
+        if (p == null) return false;    // kan ikke ligge i et tomt tre
+        return verdi.equals(p.verdi) || inneholder(p.venstre, verdi) || inneholder(p.høyre, verdi);
+    }
+
+    public boolean inneholder(T verdi) {
+        return inneholder(rot, verdi);
     }
 
     public boolean tom() {

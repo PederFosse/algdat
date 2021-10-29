@@ -1,13 +1,10 @@
 package hjelpeklasser;
 
-import java.util.Arrays;
-import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
 
-public class BinTre<T> {
+public class BinTre<T> implements Iterable<T> {
     private static final class Node<T> {
         private T verdi;
         private Node<T> venstre;
@@ -30,6 +27,7 @@ public class BinTre<T> {
 
     private Node<T> rot;
     private int antall;
+    private int endringer = 0;
 
     public BinTre() {
         rot = null;
@@ -41,6 +39,126 @@ public class BinTre<T> {
         for (int i = 0; i < posisjon.length; i++) {
             leggInn(posisjon[i], verdi[i]);
         }
+    }
+
+    private class OmvendtInordenIterator implements Iterator<T> {
+        private Stakk<Node<T>> stakk;
+        private Node<T> p = null;
+
+        private OmvendtInordenIterator() {
+            if (tom()) return;
+            stakk = new TabellStakk<>();
+            p = først(rot);
+        }
+
+        public T next () {
+            if (!hasNext()) throw new NoSuchElementException("Ingen verdie!");
+
+            T verdi = p.verdi;
+
+            if (p.venstre != null) p = først(p.venstre);
+            else if (stakk.tom()) p = null;
+            else p = stakk.taUt();
+
+            return verdi;
+        }
+
+        public boolean hasNext() {
+            return p != null;
+        }
+
+        private Node<T> først(Node<T> q) {
+            while(q.høyre != null) {
+                stakk.leggInn(q);
+                q = q.høyre;
+            }
+            return q;
+        }
+    }
+
+    private class InordenIterator implements Iterator<T> {
+        private Stakk<Node<T>> stakk;
+        private Node<T> p = null;
+        private int iteratorEndringer = endringer;
+
+        private InordenIterator() {
+            if (tom()) return;
+            stakk = new TabellStakk<>();
+            p = først(rot);
+        }
+
+        public T next() {
+            if (iteratorEndringer != endringer) throw new ConcurrentModificationException("Treet er endret!");
+            if (!hasNext()) throw new NoSuchElementException("Ingen verdier!");
+
+            T verdi = p.verdi;
+
+            if (p.høyre != null) p = først(p.høyre);    // p har høyre subtre
+            else if (stakk.tom()) p = null;             // stakken er tom
+            else p = stakk.taUt();                      // tar fra stakken
+
+            return verdi;
+        }
+
+        public boolean hasNext() {
+            if (iteratorEndringer != endringer) throw new ConcurrentModificationException("Treet er endret!");
+            return p != null;
+        }
+
+        /**
+         * Hjelpemetode, finner første noden inorden (lengst til venstre) i tre med rot q
+         * @param q roten
+         * @return  Første noden inorden i tre med rot = q
+         */
+        private Node<T> først (Node<T> q) {
+            while(q.venstre != null) {  // starter i q
+                stakk.leggInn(q);       // legger q på stakken
+                q = q.venstre;          // q er lenst ned til venstre
+            }
+            return q;
+        }
+    }
+
+    private class PreordenInterator implements Iterator<T> {
+        private final Stakk<Node<T>> s;
+        private Node<T> p;
+
+        private PreordenInterator() {
+            s = new TabellStakk<>();
+            p = rot;
+        }
+
+        public boolean hasNext() {
+            return p != null;
+        }
+
+        public T next() {
+            if (!hasNext()) throw new NoSuchElementException();
+
+            T verdi = p.verdi;
+
+            if (p.venstre != null) {    // går til venstre
+                if (p.høyre != null) s.leggInn(p.høyre);
+                p = p.venstre;
+            }
+            else if (p.høyre != null) p = p.høyre;  // går til høyre
+            else if (s.tom()) p = null; // ingen fler i treet
+            else p = s.taUt();  // tar fra stakken
+
+            return verdi;
+        }
+    }
+
+    public Iterator<T> preIterator() {
+        return new PreordenInterator();
+    }
+
+    public Iterator<T> iterator() {
+        return new InordenIterator();
+    }
+
+    public Iterator<T> omvendtIterator() {
+        return new OmvendtInordenIterator();
     }
 
     public final void leggInn(int posisjon, T verdi) {
@@ -68,6 +186,7 @@ public class BinTre<T> {
         } else {
             q.høyre = p;
         }
+        endringer++;
         antall++;
     }
 
@@ -112,6 +231,7 @@ public class BinTre<T> {
         T gammelverdi = p.verdi;
         p.verdi = nyverdi;
 
+        endringer++;
         return gammelverdi;
     }
 
@@ -136,7 +256,8 @@ public class BinTre<T> {
         else if (p == q.venstre) q.venstre = null;
         else q.høyre = null;
 
-        antall--;  //
+        antall--;
+        endringer++;
         return p.verdi;
     }
 
@@ -236,8 +357,7 @@ public class BinTre<T> {
         return tre;
     }
 
-    public void preorden2(Oppgave<? super T> oppgave)   // ny versjon
-    {
+    public void preorden2(Oppgave<? super T> oppgave) {
         if (tom()) return;
 
         Stakk<Node<T>> stakk = new TabellStakk<>();
@@ -404,20 +524,25 @@ public class BinTre<T> {
     }
 
     public void nullstill() {
+        endringer++;
         nullstill(rot);
     }
 
-
-
     public static void main(String[] args)
     {
-        int[] posisjoner = {1, 2, 3, 4, 5, 6, 7};
-        String[] values = "1234567".split("");
+        int[] posisjon = {1,2,3,4,5,6,7,8,9,10};             // posisjoner og
+        String[] verdi = "ABCDEFGHIJ".split("");             // verdier i nivåorden
 
-        BinTre<String> tre = new BinTre<>(posisjoner, values);
+        BinTre<String> tre = new BinTre<>(posisjon, verdi);  // konstruktør
 
-        tre.postorden(x -> System.out.print(x + " "));
+        for (Iterator<String> i = tre.iterator(); i.hasNext(); ) {
+            System.out.print(i.next() + " ");
+        }
+
         System.out.println();
-        tre.postorden2(x -> System.out.print(x + " "));
+
+        for (Iterator<String> i = tre.omvendtIterator(); i.hasNext(); ) {
+            System.out.print(i.next() + " ");
+        }
     }
 } // class BinTre

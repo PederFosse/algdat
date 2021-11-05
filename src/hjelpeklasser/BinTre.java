@@ -199,6 +199,7 @@ public class BinTre<T> implements Iterable<T> {
         return antall(rot);
     }
 
+    /*
     private static int høyde(Node<?> p) {
         if (p == null) return -1;
 
@@ -208,6 +209,7 @@ public class BinTre<T> implements Iterable<T> {
     public int høyde() {
         return høyde(rot);
     }
+     */
 
     private static <T> boolean inneholder(Node<T> p, T verdi) {
         if (p == null) return false;    // kan ikke ligge i et tomt tre
@@ -552,6 +554,76 @@ public class BinTre<T> implements Iterable<T> {
         nullstill(rot);
     }
 
+    private static <T> int posisjon(Node<T> p, int k, T verdi) {
+        if (p == null) return -1;                   // ligger ikke i et tomt tre
+        if (verdi.equals(p.verdi)) return k;        // verdi ligger i p
+        int i = posisjon(p.venstre, 2 * k, verdi);  // leter i venstre subtre
+        if (i > 0) return i;                        // ligger i venstre subtre
+        return posisjon(p.høyre, 2*k + 1, verdi);   // leter i høyre subtre
+    }
+
+    public int posisjon(T verdi) {
+        return posisjon(rot, 1, verdi); // kaller den private metoden
+    }
+
+    private static void høyde(Node<?> p, int nivå, IntObject o) {
+        if (nivå > o.get()) o.set(nivå);
+        if (p.venstre != null) høyde(p.venstre, nivå + 1, o);
+        if (p.høyre != null) høyde(p.høyre, nivå + 1, o);
+    }
+
+    public int høyde() {
+        IntObject o = new IntObject(-1);
+        if (!tom()) høyde(rot, 0, o);    // roten har nivå 0
+        return o.get();     // inneholder høyden
+    }
+
+    private static int høyde(Node<?> p, IntObject o) {
+        if (p == null) return -1;   // tomt tre, høyde er -1
+        int h1 = høyde(p.venstre, o);
+        int h2 = høyde(p.høyre, o);
+
+        int avstand = h1 + h2 + 2;
+
+        if (avstand > o.get()) o.set(avstand);
+
+        return Math.max(h1, h2) + 1;
+    }
+
+    public int diameter() {
+        IntObject o = new IntObject(-1);    // lager et tallobjekt
+
+        høyde(rot, o);  // traverserer
+        return o.get(); // returnerer diameter
+    }
+
+    private static int antallBladnoder(Node<?> p) {
+        if (p.venstre == null && p.høyre == null) return 1;
+
+        return (
+                (p.venstre != null ? antallBladnoder(p.venstre) : 0)
+                + (p.høyre != null ? antallBladnoder(p.høyre) : 0)
+        );
+
+    }
+
+    public int antallBladnoder() {
+        if (rot == null) return 0;
+        return antallBladnoder(rot);
+    }
+
+    private static void makspos(Node<?> p, int pos, IntObject o) {
+        if (pos > o.get()) o.set(pos);
+        if (p.venstre != null) makspos(p.venstre, 2*pos, o);
+        if (p.høyre != null) makspos(p.høyre, 2*pos+1, o);
+    }
+
+    public int makspos() {
+        IntObject o = new IntObject(-1);
+        if (!tom()) makspos(rot, 1, o);
+        return o.get();
+    }
+
     public static void main(String[] args)
     {
         int[] posisjon = {1,2,3,4,5,6,7,8,9,10};             // posisjoner og
@@ -559,14 +631,6 @@ public class BinTre<T> implements Iterable<T> {
 
         BinTre<String> tre = new BinTre<>(posisjon, verdi);  // konstruktør
 
-        for (Iterator<String> i = tre.iterator(); i.hasNext(); ) {
-            System.out.print(i.next() + " ");
-        }
-
-        System.out.println();
-
-        for (Iterator<String> i = tre.omvendtIterator(); i.hasNext(); ) {
-            System.out.print(i.next() + " ");
-        }
+        System.out.println(tre.antallBladnoder());
     }
 } // class BinTre

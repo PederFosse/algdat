@@ -624,6 +624,7 @@ public class BinTre<T> implements Iterable<T> {
         return o.get();
     }
 
+    // metode for enkel demo
     public static void main(String[] args)
     {
         int[] posisjon = {1,2,3,4,5,6,7,8,9,10};             // posisjoner og

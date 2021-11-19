@@ -4,7 +4,7 @@ public class eksamensOving {
 
 }
 
-public class DoubleLinkedList {
+class DoubleLinkedList {
 
     public class Node {
         Node next;

@@ -141,6 +141,8 @@ public class SBinTre<T> {
         return balansert(a, Comparator.naturalOrder());
     }
 
+
+    // denne finner den siste inorden?
     public boolean inneholder(T verdi) {
         if (verdi == null) return false;    // treet har ikke null-verdier
 
@@ -157,6 +159,22 @@ public class SBinTre<T> {
         }
 
         return  q != null && comp.compare(verdi, q.verdi) == 0;
+    }
+
+    public int antall(T verdi) {
+        if (verdi == null) return 0;    // treet har ikke null.verdier
+
+        int counter = 0;
+        Node<T> p = rot;
+
+        // finner første forekomst av node med verdi
+        while (p != null) {
+            int cmp = comp.compare(verdi, p.verdi);
+            if (cmp == 0) break;
+            else if (cmp < 0) p = p.venstre;
+            else p = p.høyre;
+        }
+        return 0;   // ikke ferdig med denne
     }
 
     public static void main(String[] args) {
